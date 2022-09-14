@@ -1,0 +1,1 @@
+{"version":3,"file":"bundle.js","mappings":"mBAEAA,QAAQC,IAAI,K","sources":["webpack://virtual-keyboard/./src/js/index.js"],"sourcesContent":["import \"../css/style.css\";\n\nconsole.log(\"hi\");\n"],"names":["console","log"],"sourceRoot":""}
