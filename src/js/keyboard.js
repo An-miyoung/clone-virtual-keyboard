@@ -5,6 +5,8 @@ export class Keyboard {
   #keyboardEl;
   #inputGroupEl;
   #inputEl;
+  #keyPress = false;
+  #mouseDown = false;
   constructor() {
     this.#assignElement();
     this.#addEvent();
@@ -29,12 +31,43 @@ export class Keyboard {
     document.addEventListener("keydown", this.#onKeyDown);
     document.addEventListener("keyup", this.#onKeyUp);
     this.#inputEl.addEventListener("input", this.#onInput);
+    this.#keyboardEl.addEventListener("mousedown", this.#onMouseDown);
+    // 마우스 업은 해당 키보드위에서 뿐만 아니라 도큐먼트 내부 어디서든 일어날 수 있으므로
+    document.addEventListener("mouseup", this.#onMouseUp);
   }
+
+  #onMouseUp = (e) => {
+    if (this.#keyPress) return;
+    this.#mouseDown = false;
+    const keyEl = e.target.closest("div.key");
+    const isActve = !!keyEl?.classList.contains("active");
+    const val = keyEl?.dataset.val;
+    if (isActve && !!val && val !== "Space" && val !== "Backspace") {
+      this.#inputEl.value += val;
+    }
+    if (isActve && val === "Space") {
+      this.#inputEl.value += " ";
+    }
+    if (isActve && val === "Backspace") {
+      this.#inputEl.value = this.#inputEl.value.slice(0, -1);
+    }
+    // 누른 키보드가 아니라 다른 키보드위에서 마우스업을 하는 경우가 있어. e.target 을 쓰지 않음
+    this.#keyboardEl.querySelector(".active")?.classList.remove("active");
+  };
+
+  #onMouseDown = (e) => {
+    if (this.#keyPress) return;
+    this.#mouseDown = true;
+    e.target.closest("div.key")?.classList.add("active");
+  };
+
   #onInput = (e) => {
     e.target.value = e.target.value.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/, "");
   };
 
   #onKeyDown = (e) => {
+    if (this.#mouseDown) return;
+    this.#keyPress = true;
     this.#inputGroupEl.classList.toggle(
       "error",
       /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(e.key)
@@ -45,6 +78,8 @@ export class Keyboard {
   };
 
   #onKeyUp = (e) => {
+    if (this.#mouseDown) return;
+    this.#keyPress = false;
     this.#keyboardEl
       .querySelector(`[data-code=${e.code}]`)
       ?.classList.remove("active");
